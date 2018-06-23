@@ -36,6 +36,7 @@ ui <- dashboardPage(
       inputId   = "airline",
       label     = "Airline:", 
       choices   = airline_list, 
+      selected  = "DL",
       selectize = FALSE),
     sidebarMenu(
       selectInput(
@@ -204,9 +205,11 @@ server <- function(input, output, session) {
     result <- result %>%
       group_by(dest, dest_name) %>%
       tally() %>%
-      arrange(desc(n)) %>%
       collect() %>%
-      head(10)
+      arrange(desc(n)) %>%
+      head(10) %>%
+      arrange(dest_name) 
+      
     
     r2d3(
       result,
