@@ -3,7 +3,7 @@ library(dplyr)
 library(dbplyr)
 library(purrr)
 library(shiny)
-library(highcharter)
+#library(highcharter)
 library(DT)
 library(htmltools)
 library(nycflights13)
@@ -65,10 +65,10 @@ ui <- dashboardPage(
                     
                   ),
                   fluidRow(
-                    column(width = 7,
+                    column(width = 6,
                            p(textOutput("monthly")),
-                           highchartOutput("group_totals")),
-                    column(width = 5,
+                           d3Output("group_totals")),
+                    column(width = 6,
                            p("Click on an airport in the plot to see the details"),
                            d3Output("top_airports"))
                   )
@@ -159,7 +159,7 @@ server <- function(input, output, session) {
   # this java script is executed
   js_click_line <- JS("function(event) {Shiny.onInputChange('line_clicked', [event.point.category]);}")
   
-  output$group_totals <- renderHighchart({
+  output$group_totals <- renderD3({
     
     if(input$month != 99) {
       result <- db_flights %>%
@@ -178,12 +178,10 @@ server <- function(input, output, session) {
       group_name <- "Monthly"
     } 
     
-    highchart() %>%
-      hc_add_series(
-        data = result$n, 
-        type = "line",
-        name = paste(group_name, " total flights"),
-        events = list(click = js_click_line)) 
+    r2d3(
+      result,
+      "col_plot.js"
+    )
     
     
   })

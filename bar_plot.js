@@ -54,6 +54,8 @@ bars.transition()
     .attr('opacity', function(d) { return d.n / actual_max(); })
     .attr('tip', function(d) { return (d.n * col_width()) + col_left; });
 
+// Identity labels
+
 var txt = svg.selectAll('text').data(data);
 
 txt.enter().append('text')
@@ -74,6 +76,7 @@ txt.transition()
       .style('font-size', '12px') 
       .style('font-family', 'sans-serif');  
 
+// Numeric labels
 
 var totals = svg.selectAll().data(data);
 
@@ -93,12 +96,16 @@ totals.transition()
       .text(function(d) {return d.n; })
       .attr("d", function(d) { return d.dest; });
       
+// Title
+      
 svg.append('text')
   .attr('x', width * 0.01)             
   .attr('y', height * 0.05)
   .style('font-size', '18px') 
   .style('font-family', 'sans-serif')
   .text('Top 10 Destination Airports');
+  
+// Sub-title
   
 svg.append('text')
   .attr('x', width * 0.99)             
