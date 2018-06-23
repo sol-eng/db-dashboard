@@ -1,4 +1,4 @@
-// !preview r2d3 data= data.frame(dest_name = c("Austin Bergstrom Intl", "Chicago Ohare Intl", "Dallas Fort Worth Intl", "Eagle Co Rgnl", "Fort Lauderdale Hollywood Intl", "General Edward Lawrence Logan Intl"), n = c(365, 1455, 7257,  103,  182,  274))
+// !preview r2d3 data= data.frame(dest_name = c("Austin Bergstrom Intl", "Chicago Ohare Intl", "Dallas Fort Worth Intl", "Eagle Co Rgnl", "Fort Lauderdale Hollywood Intl", "General Edward Lawrence Logan Intl"), n = c(365, 1455, 7257,  103,  182,  274), dest = c("GPT", "GPT", "GPT","GPT","GPT","GPT"))
 
 var layer_left   = 0.02;
 var layer_top    = 0.05;
@@ -19,7 +19,7 @@ bars.enter().append('rect')
     .attr('y', function(d, i) { return i * col_heigth + col_top; })
     .attr('x', col_left)
     .attr('fill', '#99CCFF')
-    .attr("d", function(d) { return d.dest_name; })
+    .attr("d", function(d) { return d.dest; })
     .on("click", function(){
       Shiny.setInputValue(
         "bar_clicked", 
@@ -45,7 +45,7 @@ bars.transition()
     .attr('y', function(d, i) { return i * col_heigth + col_top; })
     .attr('x', col_left)
     .attr('fill', '#99CCFF')
-    .attr("d", function(d) { return d.dest_name; });
+    .attr("d", function(d) { return d.dest; });
 
 var txt = svg.selectAll('text').data(data);
 
@@ -53,8 +53,9 @@ txt.enter().append('text')
       .attr('x', col_left * 1.1)
       .attr('y', function(d, i) { return i * col_heigth + (col_heigth / 2) + col_top; })
       .style('font-size', '14px') 
+      .style('font-family', 'sans-serif')
       .text(function(d) {return d.dest_name + ' - ' + d.n; })
-      .attr("d", function(d) { return d.dest_name; })
+      .attr("d", function(d) { return d.dest; })
       .on("click", function(){
         Shiny.setInputValue(
           "bar_clicked", 
@@ -70,5 +71,19 @@ txt.transition()
       .attr('x', col_left * 1.1)
       .attr('y', function(d, i) { return i * col_heigth + (col_heigth / 2) + col_top; })
       .text(function(d) {return d.dest_name + ' - ' + d.n; })
-      .attr("d", function(d) { return d.dest_name; });
+      .attr("d", function(d) { return d.dest; });
 
+var bottomline = svg.append('line');
+
+bottomline
+  .attr('x1', 0)
+  .attr('x2', width)
+  .attr('y1', height * 0.95)
+  .attr('y2', height * 0.95)
+  .attr('stroke', 'black')
+  .attr('stroke-width', 0.5);
+  
+  
+
+
+  

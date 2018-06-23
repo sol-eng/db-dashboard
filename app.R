@@ -202,7 +202,7 @@ server <- function(input, output, session) {
     if(input$month != 99) result <- filter(result, month == input$month) 
     
     result <- result %>%
-      group_by(dest_name) %>%
+      group_by(dest, dest_name) %>%
       tally() %>%
       arrange(desc(n)) %>%
       collect() %>%
@@ -225,7 +225,7 @@ server <- function(input, output, session) {
                  
                  if(tab_title %in% tab_list == FALSE){
                    details <- db_flights %>%
-                     filter(dest_name == airport,
+                     filter(dest == airport,
                             carrier == input$airline)
                    
                    if(input$month != 99) details <- filter(details, month == input$month) 
