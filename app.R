@@ -206,10 +206,7 @@ server <- function(input, output, session) {
       tally() %>%
       arrange(desc(n)) %>%
       collect() %>%
-      head(10) %>%
-      mutate(
-        dest_name = str_replace(dest_name, "Intl", "")
-        )
+      head(10)
     
     r2d3(
       result,
