@@ -8,6 +8,7 @@ library(DT)
 library(htmltools)
 library(nycflights13)
 library(r2d3)
+
 library(stringr)
 
 # Use purrr's split() and map() function to create the list
