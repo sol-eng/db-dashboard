@@ -167,14 +167,18 @@ server <- function(input, output, session) {
                carrier == input$airline) %>%
         group_by(day) %>%
         tally() %>%
-        collect()
+        collect() %>%
+        rename(label = day)
       group_name <- "Daily"
     } else {
       result <- db_flights %>%
         filter(carrier == input$airline) %>%
         group_by(month) %>%
         tally() %>%
-        collect()    
+        collect() %>%
+        inner_join(tibble(month = 1:12, month_name  = month.name), by = "month") %>%
+        mutate(month_name = substr(month_name, 1, 3)) %>%
+        rename(label = month_name)
       group_name <- "Monthly"
     } 
     
