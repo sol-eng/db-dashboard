@@ -178,7 +178,7 @@ server <- function(input, output, session) {
         collect() %>%
         inner_join(tibble(month = 1:12, month_name  = month.name), by = "month") %>%
         mutate(month_name = substr(month_name, 1, 3)) %>%
-        rename(label = month_name)
+        rename(label = month_name, value = month)
       group_name <- "Monthly"
     } 
     
