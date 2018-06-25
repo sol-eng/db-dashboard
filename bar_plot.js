@@ -6,24 +6,31 @@ var layer_top       = 0.1;
 var layer_height    = 0.85;
 var layer_width     = 0.55;
 
-var col_top    = height * layer_top;
-var col_left   = width * layer_left;
+//var col_top()    = height * layer_top;
+//var col_left()   = width * layer_left;
 var col_left_text   = width * layer_left_text;
 
+
+function svg_height() {return parseInt(svg.style('height'))}
+function svg_width() {return parseInt(svg.style('width'))}
+
+function col_top(){return svg_height() * layer_top; }
+function col_left() {return svg_width()  * layer_left;}
+
 function actual_max() {return d3.max(data, function (d) {return d.n; }); }
-function col_width()  {return (width / actual_max()) * layer_width; }
-function col_heigth() {return height / data.length * layer_height; }
+function col_width()  {return (svg_width() / actual_max()) * layer_width; }
+function col_heigth() {return svg_height() / data.length * layer_height; }
 
 var bars = svg.selectAll('rect').data(data);
 
 bars.enter().append('rect')
     .attr('width', function(d) { return d.n * col_width(); })
     .attr('height',col_heigth() * 0.9)
-    .attr('y', function(d, i) { return i * col_heigth() + col_top; })
-    .attr('x', col_left)
+    .attr('y', function(d, i) { return i * col_heigth() + col_top(); })
+    .attr('x', col_left())
     .attr('fill', '#0072B2')
     .attr('opacity', function(d) { return d.n / actual_max(); })
-    .attr('tip', function(d) { return (d.n * col_width()) + col_left; })
+    .attr('tip', function(d) { return (d.n * col_width()) + col_left(); })
     .attr("d", function(d) { return d.dest; })
     .on("click", function(){
       Shiny.setInputValue(
@@ -34,12 +41,10 @@ bars.enter().append('rect')
     })    
     .on("mouseover", function(){
         d3.select(this)
-          .attr('opacity', 1)
           .attr('fill', '#ffb14e');
     })
     .on("mouseout", function(){
         d3.select(this)
-          .attr('opacity', function(d) { return d.n / actual_max(); })
           .attr('fill', '#0072B2');
     });
 
@@ -49,10 +54,10 @@ bars.transition()
   .duration(500)
     .attr('width', function(d) { return d.n * col_width(); })
     .attr('height',col_heigth() * 0.9)
-    .attr('y', function(d, i) { return i * col_heigth() + col_top; })
-    .attr('x', col_left)
+    .attr('y', function(d, i) { return i * col_heigth() + col_top(); })
+    .attr('x', col_left())
     .attr('opacity', function(d) { return d.n / actual_max(); })
-    .attr('tip', function(d) { return (d.n * col_width()) + col_left; });
+    .attr('tip', function(d) { return (d.n * col_width()) + col_left(); });
 
 // Identity labels
 
@@ -60,7 +65,7 @@ var txt = svg.selectAll('text').data(data);
 
 txt.enter().append('text')
       .attr('x', col_left_text)
-      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top; })
+      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
       .text(function(d) {return d.dest_name; })
       .style('font-size', '12px') 
       .style('font-family', 'sans-serif');  
@@ -70,7 +75,7 @@ txt.exit().remove();
 txt.transition()
   .duration(1000)
       .attr('x', col_left_text)
-      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top; })
+      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
       .text(function(d) {return d.dest_name; })
       .attr("d", function(d) { return d.dest; })
       .style('font-size', '12px') 
@@ -81,8 +86,8 @@ txt.transition()
 var totals = svg.selectAll().data(data);
 
 totals.enter().append('text')
-      .attr('x', function(d) { return (d.n * col_width()) + col_left; })
-      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top; })
+      .attr('x', function(d) { return (d.n * col_width()) + col_left(); })
+      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
       .text(function(d) {return d.n; })
       .style('font-size', '12px') 
       .style('font-family', 'sans-serif');  
@@ -91,16 +96,16 @@ totals.exit().remove();
 
 totals.transition()
   .duration(1000)
-      .attr('x', col_left)
-      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top; })
+      .attr('x', col_left())
+      .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
       .text(function(d) {return d.n; })
       .attr("d", function(d) { return d.dest; });
       
 // Title
       
 svg.append('text')
-  .attr('x', width * 0.01)             
-  .attr('y', height * 0.05)
+  .attr('x', svg_width() * 0.01)             
+  .attr('y', svg_height() * 0.05)
   .style('font-size', '18px') 
   .style('font-family', 'sans-serif')
   .text('Top 10 Destination Airports');
@@ -108,8 +113,8 @@ svg.append('text')
 // Sub-title
   
 svg.append('text')
-  .attr('x', width * 0.99)             
-  .attr('y', height * 0.05)
+  .attr('x', svg_width() * 0.99)             
+  .attr('y', svg_height() * 0.05)
   .attr('text-anchor', 'end')
   .style('font-size', '12px') 
   .style('font-family', 'sans-serif')

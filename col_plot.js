@@ -1,9 +1,9 @@
 // !preview r2d3 data=data.frame(n = c(5000,2000,3000,4000), label = c('jan', 'feb', 'mar', 'apr'), value = c('jan', 'feb', 'mar', 'apr'))
 
-var layer_left   = 0.001;
-var layer_top    = 0.1;
-var layer_height = 0.85;
-var layer_width  = 0.99;
+var layer_left   = 0.01;
+var layer_top    = 0.2;
+var layer_height = 0.7;
+var layer_width  = 0.97;
 
 function svg_height() {return parseInt(svg.style('height'))}
 function svg_width() {return parseInt(svg.style('width'))}
@@ -21,8 +21,8 @@ cols.enter().append('rect')
   .attr('width', col_width())
   .attr('x', function(d, i) {return (i * col_width()) + (svg_width()* layer_left); })
   .attr('y', function(d) {return col_top() + ((actual_max() - d.n) * col_heigth()); })
-  .attr('fill', '#0072B2')
-  .attr('opacity', function(d) { return d.n / actual_max() })
+  .attr('fill', '#009E73')
+  .attr('opacity', 0.5)
   .attr('stroke', 'white')
   .attr('d', function(d) { return d.value; })
   .on("click", function(){
@@ -32,15 +32,16 @@ cols.enter().append('rect')
       {priority: "event"}
     );
   })    
-  .on("mouseover", function(){
+  .on("mouseenter", function(){
       d3.select(this)
         .attr('opacity', 1)
         .attr('fill', '#ffb14e');
   })
-  .on("mouseout", function(){
+  .on("mouseleave", function(){
       d3.select(this)
-        .attr('opacity', function(d) { return d.n / actual_max() })
-        .attr('fill', '#0072B2');
+        //.attr('opacity', function(d) { return d.n / actual_max() })
+        .attr('opacity', 0.5)
+        .attr('fill', '#009E73');
   });      
       
 cols.exit().remove();
@@ -51,10 +52,11 @@ cols.transition()
   .attr('width', col_width())
   .attr('x', function(d, i) {return (i * col_width()) + (svg_width()* layer_left); })
   .attr('y', function(d) {return col_top() + ((actual_max() - d.n) * col_heigth()); })
-  .attr('fill', '#0072B2')
-  .attr('opacity', function(d) { return d.n / actual_max() })
+  .attr('fill', '#009E73')
+  //.attr('opacity', function(d) { return d.n / actual_max() })
+  .attr('opacity', 0.5)
   .attr('stroke', 'white')
-  .attr('d', function(d) { return d.value; });    
+  .attr('d', function(d) { return d.value; });
 
 // Identity labels
 
@@ -62,7 +64,7 @@ var txt = svg.selectAll('text').data(data);
 
 txt.enter().append('text')
     .attr('x', function(d, i) {return (i * col_width()) + (svg_width()* layer_left) + (col_width() * 0.5); })
-    .attr('y', function(d) {return svg_height()* 0.99;})
+    .attr('y', function(d) {return svg_height()* 0.95;})
     .style('font-size', '10px') 
     .text(function(d) {return d.label;})
     .style('font-family', 'sans-serif')
@@ -74,7 +76,7 @@ txt.exit().remove();
 txt.transition()
   .duration(500)
     .attr('x', function(d, i) {return (i * col_width()) + (svg_width()* layer_left) + (col_width() * 0.5); })
-    .attr('y', function(d) {return svg_height()* 0.99;})
+    .attr('y', function(d) {return svg_height()* 0.95;})
     .style('font-size', '10px') 
     .text(function(d) {return d.label;})
     .style('font-family', 'sans-serif')
@@ -86,12 +88,11 @@ var totals = svg.selectAll().data(data);
 
 totals.enter().append('text')
       .attr('x', function(d, i) {return (i * col_width()) + (svg_width()* layer_left) + (col_width() * 0.5); })
-      .attr('y', function(d) {return col_top() + ((actual_max() - d.n) * col_heigth()); })
+      .attr('y', function(d) {return (col_top() * 0.9) + ((actual_max() - d.n) * col_heigth()); })
       .text(function(d) {return d.n; })
       .attr('text-anchor', 'middle')
       .style('font-size', '10px') 
-      .style('font-family', 'sans-serif')
-      ;  
+      .style('font-family', 'sans-serif');  
       
 totals.exit().remove();
 
@@ -117,4 +118,3 @@ svg.append('text')
   .style('font-size', '12px') 
   .style('font-family', 'sans-serif')
   .text('Click bar for details');
-  //.text());
