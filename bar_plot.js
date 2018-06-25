@@ -83,7 +83,7 @@ txt.transition()
 var totals = svg.selectAll().data(data);
 
 totals.enter().append('text')
-      .attr('x', function(d) { return (d.y * col_width()) + col_left(); })
+      .attr('x', function(d) { return ((d.y * col_width()) + col_left()) * 1.01; })
       .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
       .text(function(d) {return d.y; })
       .style('font-size', '12px') 
@@ -93,7 +93,7 @@ totals.exit().remove();
 
 totals.transition()
   .duration(1000)
-      .attr('x', col_left())
+      .attr('x', function(d) { return ((d.y * col_width()) + col_left()) * 1.01; })
       .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
       .text(function(d) {return d.y; })
       .attr("d", function(d) { return d.x; });

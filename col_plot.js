@@ -53,8 +53,7 @@ cols.transition()
   .attr('y', function(d) {return col_top() + ((actual_max() - d.y) * col_heigth()); })
   .attr('fill', '#009E73')
   .attr('opacity', 0.5)
-  .attr('stroke', 'white')
-  .attr('d', function(d) { return d.y; });
+  .attr('stroke', 'white');
 
 // Identity labels
 
@@ -82,7 +81,7 @@ txt.transition()
 
 // Numeric labels
 
-var totals = svg.selectAll().data(data);
+var totals = svg.selectAll('totals').data(data);
 
 totals.enter().append('text')
       .attr('x', function(d, i) {return (i * col_width()) + (svg_width()* layer_left) + (col_width() * 0.5); })
