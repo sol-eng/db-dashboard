@@ -1,14 +1,15 @@
-library(shinydashboard)
-library(dplyr)
-library(dbplyr)
-library(purrr)
 library(shiny)
-library(DT)
-library(htmltools)
-library(nycflights13)
-library(r2d3)
+library(shinydashboard)
+
+library(dplyr)
+library(purrr)
 library(rlang)
 library(stringr)
+
+library(DT)
+library(r2d3)
+
+library(nycflights13)
 
 # Use purrr's split() and map() function to create the list
 # needed to display the name of the airline but pass its
