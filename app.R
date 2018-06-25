@@ -3,12 +3,11 @@ library(dplyr)
 library(dbplyr)
 library(purrr)
 library(shiny)
-#library(highcharter)
 library(DT)
 library(htmltools)
 library(nycflights13)
 library(r2d3)
-
+library(rlang)
 library(stringr)
 
 # Use purrr's split() and map() function to create the list
@@ -16,9 +15,9 @@ library(stringr)
 # Carrier code as the value
 
 airline_list <- airlines %>%
-  collect()  %>%
+  collect() %>%
   split(.$name) %>%
-  map(~.$carrier)
+  map(~ .$carrier)
 
 # Use rlang's set_names() to easily create a valide "choices"
 # argument of the dropdown where the displayed text has to be
@@ -30,57 +29,59 @@ month_list <- as.list(1:12) %>%
 month_list$`All Year` <- 99
 
 ui <- dashboardPage(
-  dashboardHeader(title = "Flights Dashboard",
-                  titleWidth = 200),
+  dashboardHeader(
+    title = "Flights Dashboard",
+    titleWidth = 200
+  ),
   dashboardSidebar(
     selectInput(
-      inputId   = "airline",
-      label     = "Airline:", 
-      choices   = airline_list, 
-      selected  = "DL",
-      selectize = FALSE),
+      inputId = "airline",
+      label = "Airline:",
+      choices = airline_list,
+      selected = "DL",
+      selectize = FALSE
+    ),
     sidebarMenu(
       selectInput(
         inputId = "month",
-        label =   "Month:", 
-        choices =  month_list, 
-        selected =  99,
+        label = "Month:",
+        choices = month_list,
+        selected = 99,
         selectize = FALSE
-        ),
+      ),
       actionLink("remove", "Remove detail tabs")
     )
   ),
-  dashboardBody(      
-    tabsetPanel(id = "tabs",
-                tabPanel(
-                  title = "Main Dashboard",
-                  value = "page1",
-                  fluidRow(
-                    valueBoxOutput("total_flights"),
-                    valueBoxOutput("per_day"),
-                    valueBoxOutput("percent_delayed")
-                  ),
-                  fluidRow(
-                    
-                    
-                  ),
-                  fluidRow(
-                    column(width = 6,
-                           p(textOutput("monthly")),
-                           d3Output("group_totals")),
-                    column(width = 6,
-                           p("Click on an airport in the plot to see the details"),
-                           d3Output("top_airports"))
-                  )
-                )
+  dashboardBody(
+    tabsetPanel(
+      id = "tabs",
+      tabPanel(
+        title = "Main Dashboard",
+        value = "page1",
+        fluidRow(
+          valueBoxOutput("total_flights"),
+          valueBoxOutput("per_day"),
+          valueBoxOutput("percent_delayed")
+        ),
+        fluidRow(),
+        fluidRow(
+          column(
+            width = 6,
+            d3Output("group_totals")
+          ),
+          column(
+            width = 6,
+            d3Output("top_airports")
+          )
+        )
+      )
     )
   )
 )
 
-server <- function(input, output, session) { 
-  
+server <- function(input, output, session) {
   tab_list <- NULL
-  
+
   # Preparing the data by pre-joining flights to other
   # tables and doing some name clean-up
   db_flights <- flights %>%
@@ -90,188 +91,150 @@ server <- function(input, output, session) {
     rename(origin_name = name) %>%
     select(-lat, -lon, -alt, -tz, -dst) %>%
     left_join(airports, by = c("dest" = "faa")) %>%
-    rename(dest_name = name) 
-  
-  output$monthly <- renderText({
-    if(input$month == "99")"Click on a month in the plot to see the daily counts"
+    rename(dest_name = name)
+
+  base_flights <- reactive({
+    res <- flights %>%
+      filter(carrier == input$airline) %>%
+      left_join(airlines, by = "carrier") %>%
+      rename(airline = name) %>%
+      left_join(airports, by = c("origin" = "faa")) %>%
+      rename(origin_name = name) %>%
+      select(-lat, -lon, -alt, -tz, -dst) %>%
+      left_join(airports, by = c("dest" = "faa")) %>%
+      rename(dest_name = name)
+    if (input$month != 99) res <- filter(res, month == input$month)
+    res
   })
-  
+
   output$total_flights <- renderValueBox({
     # The following code runs inside the database
-    result <- db_flights %>%
-      filter(carrier == input$airline)
-    
-    if(input$month != 99) result <- filter(result, month == input$month)
-    
-    result <- result %>%
+    base_flights() %>%
       tally() %>%
-      pull() %>% 
-      as.integer()
-    
-    valueBox(value = prettyNum(result, big.mark = ","),
-             subtitle = "Number of Flights")
+      pull() %>%
+      as.integer() %>%
+      prettyNum(big.mark = ",") %>%
+      valueBox(subtitle = "Number of Flights")
   })
-  
-  
+
   output$per_day <- renderValueBox({
-    
     # The following code runs inside the database
-    result <- db_flights %>%
-      filter(carrier == input$airline)
-    
-    if(input$month != 99) result <- filter(result, month == input$month)
-    result <- result %>%
+    base_flights() %>%
       group_by(day, month) %>%
       tally() %>%
       summarise(avg = mean(n)) %>%
-      pull()
-    
-    valueBox(prettyNum(result, big.mark = ","),
-             subtitle = "Average Flights",
-             color = "blue")
+      pull() %>%
+      round() %>%
+      prettyNum(big.mark = ",") %>%
+      valueBox(
+        subtitle = "Average Flights per day",
+        color = "blue"
+      )
   })
-  
-  
-  
+
   output$percent_delayed <- renderValueBox({
-    
+
     # The following code runs inside the database
-    result <- db_flights %>%
-      filter(carrier == input$airline)
-    
-    if(input$month != 99) result <- filter(result, month == input$month)
-    result <- result %>%
+    base_flights() %>%
       filter(!is.na(dep_delay)) %>%
       mutate(delayed = ifelse(dep_delay >= 15, 1, 0)) %>%
-      summarise(delays = sum(delayed),
-                total = n()) %>%
-      mutate(percent = delays / total) %>%
-      pull()
-    
-    valueBox(paste0(round(result * 100), "%"),
-             subtitle = "Flights delayed",
-             color = "teal")
+      summarise(
+        delays = sum(delayed),
+        total = n()
+      ) %>%
+      mutate(percent = (delays / total) * 100) %>%
+      pull() %>%
+      round() %>%
+      paste0("%") %>%
+      valueBox(
+        subtitle = "Flights delayed",
+        color = "teal"
+      )
   })
-  
-  # Events in Highcharts can be tracked using a JavaScript. For data points in a plot, the 
-  # event.point.category returns the value that is used for an additional filter, in this case
-  # the month that was clicked on.  A paired observeEvent() command is activated when
-  # this java script is executed
-  js_click_line <- JS("function(event) {Shiny.onInputChange('line_clicked', [event.point.category]);}")
-  
+
   output$group_totals <- renderD3({
-    
-    if(input$month != 99) {
-      result <- db_flights %>%
-        filter(month == input$month,
-               carrier == input$airline) %>%
-        group_by(day) %>%
-        tally() %>%
-        collect() %>%
-        rename(label = day)
-      group_name <- "Daily"
+    if (input$month != 99) {
+      grouped <- expr(day)
     } else {
-      result <- db_flights %>%
-        filter(carrier == input$airline) %>%
-        group_by(month) %>%
-        tally() %>%
-        collect() %>%
-        inner_join(tibble(month = 1:12, month_name  = month.name), by = "month") %>%
-        mutate(month_name = substr(month_name, 1, 3)) %>%
-        rename(label = month_name, value = month)
-      group_name <- "Monthly"
-    } 
-    
-    r2d3(
-      result,
-      "col_plot.js"
-    )
-    
-    
+      grouped <- expr(month)
+    }
+
+    base_flights() %>%
+      group_by(!!grouped) %>%
+      tally() %>%
+      collect() %>%
+      rename(label = !!grouped) %>%
+      r2d3("col_plot.js")
   })
-  
-  # Tracks the JavaScript event created by `js_click_line`
-  observeEvent(input$line_clicked != "",
-               if(input$month == 99)
-                 updateSelectInput(session, "month", selected = input$line_clicked),
-               ignoreInit = TRUE)
-  
-  js_bar_clicked <- JS("function(event) {Shiny.onInputChange('bar_clicked', [event.point.category]);}")
-  
+
   output$top_airports <- renderD3({
     # The following code runs inside the database
-    result <- db_flights %>%
-      filter(carrier == input$airline) 
-    
-    if(input$month != 99) result <- filter(result, month == input$month) 
-    
-    result <- result %>%
+    base_flights() %>%
       group_by(dest, dest_name) %>%
       tally() %>%
       collect() %>%
       arrange(desc(n)) %>%
       head(10) %>%
-      arrange(dest_name) 
-      
-    
-    r2d3(
-      result,
-      "bar_plot.js"
-    )
-    
-    
+      arrange(dest_name) %>%
+      r2d3("bar_plot.js")
   })
-  
-  observeEvent(input$bar_clicked,
-               {
-                 airport <- input$bar_clicked[1]
-                 tab_title <- paste(input$airline, 
-                                    "-", airport , 
-                                    if(input$month != 99) paste("-" , month.name[as.integer(input$month)]))
-                 
-                 if(tab_title %in% tab_list == FALSE){
-                   details <- db_flights %>%
-                     filter(dest == airport,
-                            carrier == input$airline)
-                   
-                   if(input$month != 99) details <- filter(details, month == input$month) 
-                   
-                   details <- details %>%
-                     head(100) %>% 
-                     select(month,
-                            day,
-                            flight,
-                            tailnum,
-                            dep_time,
-                            arr_time,
-                            dest_name,
-                            distance) %>%
-                     collect() %>%
-                     mutate(month = month.name[as.integer(month)])
-                   
-                   
-                   appendTab(inputId = "tabs",
-                             tabPanel(
-                               tab_title,
-                               DT::renderDataTable(details)
-                             ))
-                   
-                   tab_list <<- c(tab_list, tab_title)
-                   
-                 }
-                 
-                 updateTabsetPanel(session, "tabs", selected = tab_title)
-                 
-               })
-  
-  observeEvent(input$remove,{
+
+
+  # Tracks the JavaScript event created by `js_click_line`
+  observeEvent(input$line_clicked != "", {
+    if (input$month == "99") {
+      updateSelectInput(session, "month", selected = input$line_clicked)
+    }
+  },
+  ignoreInit = TRUE
+  )
+
+  observeEvent(input$bar_clicked, {
+    airport <- input$bar_clicked
+    tab_title <- paste(
+      input$airline, "-", airport,
+      if (input$month != 99) {
+        paste("-", month.name[as.integer(input$month)])
+      }
+    )
+
+    if (!(tab_title %in% tab_list)) {
+      details <- base_flights() %>%
+        filter(dest == airport) %>%
+        head(100) %>%
+        select(
+          month,
+          day,
+          flight,
+          tailnum,
+          dep_time,
+          arr_time,
+          dest_name,
+          distance
+        ) %>%
+        collect() %>%
+        mutate(month = month.name[as.integer(month)])
+
+      appendTab(
+        inputId = "tabs",
+        tabPanel(
+          tab_title,
+          DT::renderDataTable(details)
+        )
+      )
+
+      tab_list <<- c(tab_list, tab_title)
+    }
+    updateTabsetPanel(session, "tabs", selected = tab_title)
+  })
+
+  observeEvent(input$remove, {
     # Use purrr's walk command to cycle through each
     # panel tabs and remove them
     tab_list %>%
-      walk(~removeTab("tabs", .x))
+      walk(~ removeTab("tabs", .x))
     tab_list <<- NULL
   })
-  
 }
 
 

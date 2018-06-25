@@ -24,7 +24,7 @@ cols.enter().append('rect')
   .attr('fill', '#009E73')
   .attr('opacity', 0.5)
   .attr('stroke', 'white')
-  .attr('d', function(d) { return d.value; })
+  .attr('d', function(d) { return d.label; })
   .on("click", function(){
     Shiny.setInputValue(
       "line_clicked", 
