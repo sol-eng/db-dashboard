@@ -86,7 +86,6 @@ server <- function(input, output, session) {
   # SQL query that all the elements in the dashboard
   # will use. The reactive() allows us to evaluate
   # the input variables
-  
   base_flights <- reactive({
     res <- flights %>%
       filter(carrier == input$airline) %>%
@@ -101,6 +100,7 @@ server <- function(input, output, session) {
     res
   })
 
+  # Total Flights (server) ------------------------------------------
   output$total_flights <- renderValueBox({
     # The following code runs inside the database.
     # pull() bring the results into R, which then
@@ -112,7 +112,8 @@ server <- function(input, output, session) {
       prettyNum(big.mark = ",") %>%
       valueBox(subtitle = "Number of Flights")
   })
-
+  
+  # Avg per Day (server) --------------------------------------------
   output$per_day <- renderValueBox({
     # The following code runs inside the database
     base_flights() %>%
@@ -128,9 +129,8 @@ server <- function(input, output, session) {
       )
   })
 
+  # Percent delayed (server) ----------------------------------------
   output$percent_delayed <- renderValueBox({
-
-    # The following code runs inside the database
     base_flights() %>%
       filter(!is.na(dep_delay)) %>%
       mutate(delayed = ifelse(dep_delay >= 15, 1, 0)) %>%
@@ -148,21 +148,34 @@ server <- function(input, output, session) {
       )
   })
 
+  # Montly/daily trend (server) -------------------------------------
   output$group_totals <- renderD3({
-    
     grouped <- ifelse (input$month != 99, expr(day), expr(month))
 
-    base_flights() %>%
+    res <- base_flights() %>%
       group_by(!!grouped) %>%
       tally() %>%
       collect() %>%
-      rename(
-        value = n,
-        label = !!grouped
+      mutate(
+        y = n,
+        x = !!grouped
         ) %>%
-      r2d3("col_plot.js")
+      select(x, y)
+    
+    if(input$month == 99){
+      res <- res %>%
+        inner_join(
+          tibble(x = 1:12, label = substr(month.name, 1, 3))
+          ) 
+    } else {
+      res <- res %>% 
+        mutate(label = x)
+    }
+    
+    r2d3(res, "col_plot.js")
   })
 
+  # Top airports (server) -------------------------------------------
   output$top_airports <- renderD3({
     # The following code runs inside the database
     base_flights() %>%
@@ -176,7 +189,7 @@ server <- function(input, output, session) {
   })
 
 
-  # Tracks the JavaScript event created by `js_click_line`
+  # Month/Day column click (server) ---------------------------------
   observeEvent(input$column_clicked != "", {
     if (input$month == "99") {
       updateSelectInput(session, "month", selected = input$column_clicked)
@@ -185,6 +198,7 @@ server <- function(input, output, session) {
   ignoreInit = TRUE
   )
 
+  # Bar clicked (server) --------------------------------------------
   observeEvent(input$bar_clicked, {
     airport <- input$bar_clicked
     tab_title <- paste(
@@ -223,6 +237,7 @@ server <- function(input, output, session) {
     updateTabsetPanel(session, "tabs", selected = tab_title)
   })
 
+  # Remote tabs (server) --------------------------------------------
   observeEvent(input$remove, {
     # Use purrr's walk command to cycle through each
     # panel tabs and remove them
