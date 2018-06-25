@@ -105,7 +105,7 @@ svg.append('text')
   .attr('y', svg_height() * 0.05)
   .style('font-size', '18px') 
   .style('font-family', 'sans-serif')
-  .text('Top 10 xination Airports');
+  .text('Top 10 Destination Airports');
   
 // Sub-title
   
