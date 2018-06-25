@@ -185,7 +185,7 @@ server <- function(input, output, session) {
       arrange(desc(n)) %>%
       head(10) %>%
       arrange(dest_name) %>%
-      mutate(dest_name =  str_sub(dest_name, 1, 30)) %>%
+      mutate(dest_name = str_sub(dest_name, 1, 30)) %>%
       rename(
         x = dest,
         y = n,
@@ -195,20 +195,20 @@ server <- function(input, output, session) {
   })
 
   # Get details (server) --------------------------------------------
-  get_details <- function(airport = NULL, day = NULL){
+  get_details <- function(airport = NULL, day = NULL) {
     # Create a generic details function that can be called
     # by different dashboard events
     res <- base_flights()
-    if(!is.null(airport)) res <- filter(res, dest == airport)
-    if(!is.null(day)) res <- filter(res, day == !! as.integer(day))
-    
+    if (!is.null(airport)) res <- filter(res, dest == airport)
+    if (!is.null(day)) res <- filter(res, day == !!as.integer(day))
+
     res %>%
       head(100) %>%
       select(
-        month, day, flight, tailnum, 
-        dep_time, arr_time, dest_name, 
+        month, day, flight, tailnum,
+        dep_time, arr_time, dest_name,
         distance
-        ) %>%
+      ) %>%
       collect() %>%
       mutate(month = month.name[as.integer(month)])
   }
@@ -217,7 +217,7 @@ server <- function(input, output, session) {
   observeEvent(input$column_clicked != "", {
     if (input$month == "99") {
       updateSelectInput(session, "month", selected = input$column_clicked)
-    } else  {
+    } else {
       day <- input$column_clicked
       month <- input$month
       tab_title <- paste(
@@ -241,7 +241,7 @@ server <- function(input, output, session) {
   ignoreInit = TRUE
   )
 
-  
+
   # Bar clicked (server) --------------------------------------------
   observeEvent(input$bar_clicked, {
     airport <- input$bar_clicked
@@ -259,9 +259,9 @@ server <- function(input, output, session) {
           tab_title,
           DT::renderDataTable(
             get_details(airport = airport)
-            )
           )
         )
+      )
 
       tab_list <<- c(tab_list, tab_title)
     }
@@ -277,7 +277,5 @@ server <- function(input, output, session) {
     tab_list <<- NULL
   })
 }
-
-
 
 shinyApp(ui, server)
