@@ -82,17 +82,11 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   tab_list <- NULL
 
-  # Preparing the data by pre-joining flights to other
-  # tables and doing some name clean-up
-  db_flights <- flights %>%
-    left_join(airlines, by = "carrier") %>%
-    rename(airline = name) %>%
-    left_join(airports, by = c("origin" = "faa")) %>%
-    rename(origin_name = name) %>%
-    select(-lat, -lon, -alt, -tz, -dst) %>%
-    left_join(airports, by = c("dest" = "faa")) %>%
-    rename(dest_name = name)
-
+  # Use a reactive() function to prepare the base
+  # SQL query that all the elements in the dashboard
+  # will use. The reactive() allows us to evaluate
+  # the input variables
+  
   base_flights <- reactive({
     res <- flights %>%
       filter(carrier == input$airline) %>%
@@ -108,7 +102,9 @@ server <- function(input, output, session) {
   })
 
   output$total_flights <- renderValueBox({
-    # The following code runs inside the database
+    # The following code runs inside the database.
+    # pull() bring the results into R, which then
+    # it's piped directly to a valueBox()
     base_flights() %>%
       tally() %>%
       pull() %>%
@@ -153,17 +149,17 @@ server <- function(input, output, session) {
   })
 
   output$group_totals <- renderD3({
-    if (input$month != 99) {
-      grouped <- expr(day)
-    } else {
-      grouped <- expr(month)
-    }
+    
+    grouped <- ifelse (input$month != 99, expr(day), expr(month))
 
     base_flights() %>%
       group_by(!!grouped) %>%
       tally() %>%
       collect() %>%
-      rename(label = !!grouped) %>%
+      rename(
+        value = n,
+        label = !!grouped
+        ) %>%
       r2d3("col_plot.js")
   })
 
@@ -181,9 +177,9 @@ server <- function(input, output, session) {
 
 
   # Tracks the JavaScript event created by `js_click_line`
-  observeEvent(input$line_clicked != "", {
+  observeEvent(input$column_clicked != "", {
     if (input$month == "99") {
-      updateSelectInput(session, "month", selected = input$line_clicked)
+      updateSelectInput(session, "month", selected = input$column_clicked)
     }
   },
   ignoreInit = TRUE
@@ -197,7 +193,6 @@ server <- function(input, output, session) {
         paste("-", month.name[as.integer(input$month)])
       }
     )
-
     if (!(tab_title %in% tab_list)) {
       details <- base_flights() %>%
         filter(dest == airport) %>%

@@ -6,10 +6,7 @@ var layer_top       = 0.1;
 var layer_height    = 0.85;
 var layer_width     = 0.55;
 
-//var col_top()    = height * layer_top;
-//var col_left()   = width * layer_left;
 var col_left_text   = width * layer_left_text;
-
 
 function svg_height() {return parseInt(svg.style('height'))}
 function svg_width() {return parseInt(svg.style('width'))}
