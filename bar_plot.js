@@ -1,4 +1,4 @@
-// !preview r2d3 data= data.frame(dest_name = c("Austin Bergstrom Intl", "Chicago Ohare Intl", "Dallas Fort Worth Intl", "Eagle Co Rgnl", "Fort Lauderdale Hollywood Intl", "General Edward Lawrence Logan Intl"), n = c(365, 1455, 7257,  103,  182,  274), dest = c("GPT", "GPT", "GPT","GPT","GPT","GPT"))
+// !preview r2d3 data= data.frame(label = c("Austin Bergstrom Intl", "Chicago Ohare Intl", "Dallas Fort Worth Intl", "Eagle Co Rgnl", "Fort Lauderdale Hollywood Intl", "General Edward Lawrence Logan Intl"), y = c(365, 1455, 7257,  103,  182,  274), x = c("GPT", "GPT", "GPT","GPT","GPT","GPT"))
 
 var layer_left      = 0.35;
 var layer_left_text = 0.01;
@@ -14,21 +14,21 @@ function svg_width() {return parseInt(svg.style('width'))}
 function col_top(){return svg_height() * layer_top; }
 function col_left() {return svg_width()  * layer_left;}
 
-function actual_max() {return d3.max(data, function (d) {return d.n; }); }
+function actual_max() {return d3.max(data, function (d) {return d.y; }); }
 function col_width()  {return (svg_width() / actual_max()) * layer_width; }
 function col_heigth() {return svg_height() / data.length * layer_height; }
 
 var bars = svg.selectAll('rect').data(data);
 
 bars.enter().append('rect')
-    .attr('width', function(d) { return d.n * col_width(); })
+    .attr('width', function(d) { return d.y * col_width(); })
     .attr('height',col_heigth() * 0.9)
     .attr('y', function(d, i) { return i * col_heigth() + col_top(); })
     .attr('x', col_left())
     .attr('fill', '#0072B2')
-    .attr('opacity', function(d) { return d.n / actual_max(); })
-    .attr('tip', function(d) { return (d.n * col_width()) + col_left(); })
-    .attr("d", function(d) { return d.dest; })
+    .attr('opacity', function(d) { return d.y / actual_max(); })
+    .attr('tip', function(d) { return (d.y * col_width()) + col_left(); })
+    .attr("d", function(d) { return d.x; })
     .on("click", function(){
       Shiny.setInputValue(
         "bar_clicked", 
@@ -49,12 +49,12 @@ bars.exit().remove();
 
 bars.transition()
   .duration(500)
-    .attr('width', function(d) { return d.n * col_width(); })
+    .attr('width', function(d) { return d.y * col_width(); })
     .attr('height',col_heigth() * 0.9)
     .attr('y', function(d, i) { return i * col_heigth() + col_top(); })
     .attr('x', col_left())
-    .attr('opacity', function(d) { return d.n / actual_max(); })
-    .attr('tip', function(d) { return (d.n * col_width()) + col_left(); });
+    .attr('opacity', function(d) { return d.y / actual_max(); })
+    .attr('tip', function(d) { return (d.y * col_width()) + col_left(); });
 
 // Identity labels
 
@@ -63,7 +63,7 @@ var txt = svg.selectAll('text').data(data);
 txt.enter().append('text')
       .attr('x', col_left_text)
       .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
-      .text(function(d) {return d.dest_name; })
+      .text(function(d) {return d.label; })
       .style('font-size', '12px') 
       .style('font-family', 'sans-serif');  
       
@@ -73,8 +73,8 @@ txt.transition()
   .duration(1000)
       .attr('x', col_left_text)
       .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
-      .text(function(d) {return d.dest_name; })
-      .attr("d", function(d) { return d.dest; })
+      .text(function(d) {return d.label; })
+      .attr("d", function(d) { return d.x; })
       .style('font-size', '12px') 
       .style('font-family', 'sans-serif');  
 
@@ -83,9 +83,9 @@ txt.transition()
 var totals = svg.selectAll().data(data);
 
 totals.enter().append('text')
-      .attr('x', function(d) { return (d.n * col_width()) + col_left(); })
+      .attr('x', function(d) { return (d.y * col_width()) + col_left(); })
       .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
-      .text(function(d) {return d.n; })
+      .text(function(d) {return d.y; })
       .style('font-size', '12px') 
       .style('font-family', 'sans-serif');  
       
@@ -95,8 +95,8 @@ totals.transition()
   .duration(1000)
       .attr('x', col_left())
       .attr('y', function(d, i) { return i * col_heigth() + (col_heigth() / 2) + col_top(); })
-      .text(function(d) {return d.n; })
-      .attr("d", function(d) { return d.dest; });
+      .text(function(d) {return d.y; })
+      .attr("d", function(d) { return d.x; });
       
 // Title
       
@@ -105,7 +105,7 @@ svg.append('text')
   .attr('y', svg_height() * 0.05)
   .style('font-size', '18px') 
   .style('font-family', 'sans-serif')
-  .text('Top 10 Destination Airports');
+  .text('Top 10 xination Airports');
   
 // Sub-title
   

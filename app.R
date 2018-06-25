@@ -112,7 +112,7 @@ server <- function(input, output, session) {
       prettyNum(big.mark = ",") %>%
       valueBox(subtitle = "Number of Flights")
   })
-  
+
   # Avg per Day (server) --------------------------------------------
   output$per_day <- renderValueBox({
     # The following code runs inside the database
@@ -150,7 +150,7 @@ server <- function(input, output, session) {
 
   # Montly/daily trend (server) -------------------------------------
   output$group_totals <- renderD3({
-    grouped <- ifelse (input$month != 99, expr(day), expr(month))
+    grouped <- ifelse(input$month != 99, expr(day), expr(month))
 
     res <- base_flights() %>%
       group_by(!!grouped) %>%
@@ -159,19 +159,18 @@ server <- function(input, output, session) {
       mutate(
         y = n,
         x = !!grouped
-        ) %>%
+      ) %>%
       select(x, y)
-    
-    if(input$month == 99){
+
+    if (input$month == 99) {
       res <- res %>%
         inner_join(
           tibble(x = 1:12, label = substr(month.name, 1, 3))
-          ) 
+        )
     } else {
-      res <- res %>% 
+      res <- res %>%
         mutate(label = x)
     }
-    
     r2d3(res, "col_plot.js")
   })
 
@@ -185,6 +184,11 @@ server <- function(input, output, session) {
       arrange(desc(n)) %>%
       head(10) %>%
       arrange(dest_name) %>%
+      rename(
+        x = dest,
+        y = n,
+        label = dest_name
+      ) %>%
       r2d3("bar_plot.js")
   })
 
