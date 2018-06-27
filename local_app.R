@@ -121,14 +121,15 @@ server <- function(input, output, session) {
     base_flights() %>%
       group_by(day, month) %>%
       tally() %>%
+      ungroup() %>%
       summarise(avg = mean(n)) %>%
-      pull() %>%
+      pull(avg) %>%
       round() %>%
       prettyNum(big.mark = ",") %>%
       valueBox(
         subtitle = "Average Flights per day",
         color = "blue"
-      )
+      ) 
   })
 
   # Percent delayed (server) ----------------------------------------
@@ -167,7 +168,8 @@ server <- function(input, output, session) {
     if (input$month == 99) {
       res <- res %>%
         inner_join(
-          tibble(x = 1:12, label = substr(month.name, 1, 3))
+          tibble(x = 1:12, label = substr(month.name, 1, 3)),
+          by = "x"
         )
     } else {
       res <- res %>%
