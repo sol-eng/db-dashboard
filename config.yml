@@ -1,0 +1,6 @@
+default:
+  mssql:
+      DSN: "SQL Server"
+rsconnect:
+  mssql:
+      DSN: "Datawarehouse"
