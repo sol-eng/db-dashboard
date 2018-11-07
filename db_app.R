@@ -13,14 +13,22 @@ library(odbc)
 library(DBI)
 library(dbplyr)
 library(config)
+library(RSQLite)
 
-dw <- config::get("mssql")
+library(nycflights13)
 
-con <- DBI::dbConnect(
-  odbc::odbc(),
-  DSN = dw$DSN
-  )
+dw <- config::get("db")
+con <- do.call(DBI::dbConnect, args = dw)
 
+# pre-populate data if it does not exist
+if (! dbExistsTable(con, "airlines"))
+  dbWriteTable(con, "airlines", airlines)
+if (! dbExistsTable(con, "airports"))
+  dbWriteTable(con, "airports", airports)
+if (! dbExistsTable(con, "flights"))
+  dbWriteTable(con, "flights", flights)
+
+# build db-tbls
 airlines <- tbl(con, "airlines")
 airports <- tbl(con, "airports")
 flights  <- tbl(con, "flights")
