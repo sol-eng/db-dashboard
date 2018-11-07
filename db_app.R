@@ -137,7 +137,7 @@ server <- function(input, output, session) {
       tally() %>%
       ungroup() %>%
       summarise(avg = mean(n, na.rm = TRUE)) %>%
-      pull() %>%
+      pull(avg) %>%
       round() %>%
       prettyNum(big.mark = ",") %>%
       valueBox(
