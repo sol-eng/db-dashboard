@@ -122,7 +122,7 @@ server <- function(input, output, session) {
       group_by(day, month) %>%
       tally() %>%
       ungroup() %>%
-      summarise(avg = mean(n)) %>%
+      summarise(avg = mean(n, na.rm = TRUE)) %>%
       pull(avg) %>%
       round() %>%
       prettyNum(big.mark = ",") %>%
@@ -138,7 +138,7 @@ server <- function(input, output, session) {
       filter(!is.na(dep_delay)) %>%
       mutate(delayed = ifelse(dep_delay >= 15, 1, 0)) %>%
       summarise(
-        delays = sum(delayed),
+        delays = sum(delayed, na.rm = TRUE),
         total = n()
       ) %>%
       mutate(percent = (delays / total) * 100) %>%
