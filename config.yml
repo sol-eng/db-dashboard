@@ -1,6 +1,19 @@
 default:
-  mssql:
-      DSN: "SQL Server"
+  db:
+    drv: !expr odbc::odbc()
+    DSN: "SQL Server"
+    
+local:
+  db:
+    drv: !expr RSQLite::SQLite()
+    db: ":memory:"
+    
 rsconnect:
-  mssql:
-      DSN: "Datawarehouse"
+  db:
+    drv: !expr odbc::odbc()
+    DSN: "Datawarehouse"
+    
+quickstart:
+  db:
+    drv: !expr RSQLite::SQLite()
+    db: ":memory:"
