@@ -1,0 +1,8 @@
+default:
+  content:
+    - name: "Enterprise Ready Dashboards"
+      path: "./local"
+      description: "."
+      tag:
+        - "Demo Content|Enterprise"
+      url: "/enterprise/"
