@@ -1,8 +1,8 @@
 default:
   content:
     - name: "Enterprise Ready Dashboards"
-      path: "./local"
-      description: "Dashboard with drill downs."
+      path: "./sqlite"
+      description: "Use databases with Shiny."
       tag:
         - "Demo Content|Enterprise"
       url: "/enterprise/"
