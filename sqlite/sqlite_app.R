@@ -152,6 +152,7 @@ server <- function(input, output, session) {
         delays = sum(delayed, na.rm = TRUE),
         total = n()
       ) %>%
+      collect() %>% # needed b/c we are at parser stack overflow limit in sqlite
       mutate(percent = (delays / total) * 100) %>%
       pull() %>%
       round() %>%
