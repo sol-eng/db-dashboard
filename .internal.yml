@@ -6,3 +6,4 @@ default:
       tag:
         - "Demo Content|Enterprise"
       url: "/enterprise/"
+      image: "dashboard.png"
