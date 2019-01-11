@@ -749,7 +749,7 @@
       "GithubRepo": "gitlink",
       "GithubUsername": "colearendt",
       "GithubRef": "master",
-      "GithubSha1": "f9878165a9d6ae8c789381b8e543d6b5827bf886",
+      "GithubSha1": "23c90a7722a1096d8be49640b5f4efc3a08b7009",
       "description": {
         "Package": "gitlink",
         "Title": "Add git links to your web-based assets",
@@ -766,16 +766,16 @@
         "RemoteRepo": "gitlink",
         "RemoteUsername": "colearendt",
         "RemoteRef": "master",
-        "RemoteSha": "f9878165a9d6ae8c789381b8e543d6b5827bf886",
+        "RemoteSha": "23c90a7722a1096d8be49640b5f4efc3a08b7009",
         "GithubRepo": "gitlink",
         "GithubUsername": "colearendt",
         "GithubRef": "master",
-        "GithubSHA1": "f9878165a9d6ae8c789381b8e543d6b5827bf886",
+        "GithubSHA1": "23c90a7722a1096d8be49640b5f4efc3a08b7009",
         "NeedsCompilation": "no",
-        "Packaged": "2019-01-08 19:53:53 UTC; carendt",
+        "Packaged": "2019-01-11 16:01:18 UTC; carendt",
         "Author": "Cole Arendt [aut, cre]",
         "Maintainer": "Cole Arendt <cole@rstudio.com>",
-        "Built": "R 3.4.3; ; 2019-01-08 19:53:54 UTC; unix"
+        "Built": "R 3.4.3; ; 2019-01-11 16:01:18 UTC; unix"
       }
     },
     "glue": {
@@ -2029,7 +2029,7 @@
       "checksum": "be2f655f7f3c98adb7d49ae8583a047b"
     },
     "manifest.json": {
-      "checksum": "b5b3fc5bcc912f9908eed99e955e5835"
+      "checksum": "358af5471bbde2e0fee01f87272ef39d"
     },
     "packrat/desc/assertthat": {
       "checksum": "8d1395cb909e100c8433a01614da5f10"
@@ -2086,7 +2086,7 @@
       "checksum": "5c1a46ee91ac620a3a7852deb8ac00d4"
     },
     "packrat/desc/gitlink": {
-      "checksum": "33c870c7072b4ed2ff6db5027f6f0735"
+      "checksum": "6345f7f67337a781733bcf1ecc744a11"
     },
     "packrat/desc/glue": {
       "checksum": "b6621544dfe9ce763cd4ab9be9057ee7"
@@ -2230,7 +2230,7 @@
       "checksum": "727431b9e87c3b298ee1bb1676e8f5ba"
     },
     "packrat/packrat.lock": {
-      "checksum": "b99c3dd4339b437738dc17f5035fe3d4"
+      "checksum": "309ddd2fd604faa2115cf34e11e056bf"
     }
   },
   "users": null
