@@ -66,6 +66,12 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    gitlink::ribbon_css(
+      "https://github.com/sol-eng/db-dashboard", 
+      position = "right", 
+      parent_css = list("z-index" = "1040", "pointer-events" = "none"),
+      "pointer-events" = "auto"
+    ),
     tabsetPanel(
       id = "tabs",
       tabPanel(
@@ -152,6 +158,7 @@ server <- function(input, output, session) {
         delays = sum(delayed, na.rm = TRUE),
         total = n()
       ) %>%
+      collect() %>% # needed b/c we are at parser stack overflow limit in sqlite
       mutate(percent = (delays / total) * 100) %>%
       pull() %>%
       round() %>%

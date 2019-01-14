@@ -2,7 +2,8 @@ default:
   content:
     - name: "Enterprise Ready Dashboards"
       path: "./sqlite"
-      description: "Use databases with Shiny."
+      description: "An interactive Shiny application that uses a database and dbplyr to translate R code into SQL."
       tag:
         - "Demo Content|Enterprise"
       url: "/enterprise/"
+      image: "dashboard.png"
