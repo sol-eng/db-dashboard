@@ -107,7 +107,7 @@ server <- function(input, output, session) {
   # the input variables
   base_flights <- reactive({
     res <- flights %>%
-      filter(carrier == input$airline) %>%
+      filter(carrier == local(input$airline)) %>%
       left_join(airlines, by = "carrier") %>%
       rename(airline = name) %>%
       left_join(airports, by = c("origin" = "faa")) %>%
@@ -115,7 +115,7 @@ server <- function(input, output, session) {
       select(-lat, -lon, -alt, -tz, -dst) %>%
       left_join(airports, by = c("dest" = "faa")) %>%
       rename(dest_name = name)
-    if (input$month != 99) res <- filter(res, month == input$month)
+    if (local(input$month) != 99) res <- filter(res, month == local(input$month))
     res
   })
 
