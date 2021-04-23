@@ -6,6 +6,9 @@ library(purrr)
 library(rlang)
 library(stringr)
 
+library(ggplot2)
+library(ggiraph)
+
 library(DT)
 library(r2d3)
 
@@ -73,7 +76,7 @@ ui <- dashboardPage(
           ),
           column(
             width = 6,
-            d3Output("top_airports")
+            girafeOutput("top_airports")
           )
         )
       )
@@ -179,23 +182,44 @@ server <- function(input, output, session) {
   })
 
   # Top airports (server) -------------------------------------------
-  output$top_airports <- renderD3({
+  output$top_airports <- renderGirafe({
     # The following code runs inside the database
-    base_flights() %>%
+    tbl_airports <- base_flights() %>%
       group_by(dest, dest_name) %>%
       tally() %>%
       collect() %>%
       arrange(desc(n)) %>%
       head(10) %>%
       arrange(dest_name) %>%
-      mutate(dest_name = str_sub(dest_name, 1, 30)) %>%
-      rename(
-        x = dest,
-        y = n,
-        label = dest_name
-      ) %>%
-      r2d3("bar_plot.js")
-  })
+      mutate(
+        dest_name = str_sub(dest_name, 1, 30),
+        n_label = prettyNum(n, big.mark = ",")
+        #n_label = paste0(round(n / 1000), "K")
+      ) 
+    
+    gg_airports <- tbl_airports %>%  
+      ggplot(aes(x = dest_name, y = n, data_id = dest, label = n_label)) +
+      geom_col_interactive(fill = "#0072B2") +
+      geom_text_interactive(hjust = 1.1, color = "#ffffff") +
+      coord_flip() +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(hjust = 0, size = 10),
+        axis.title = element_blank(),
+        plot.title = element_text(hjust = -1),
+        plot.subtitle = element_text(hjust = 1, vjust = 5, size = 8)
+      ) +
+      labs(
+        title = "Top 10 Destination Airports",
+        subtitle = "Click on bar for more details"
+      )
+    
+    girafe(
+      ggobj = gg_airports, 
+      options = list(opts_selection(type = "single", only_shiny = FALSE))
+    )
+    })
 
   # Get details (server) --------------------------------------------
   get_details <- function(airport = NULL, day = NULL) {
@@ -246,8 +270,8 @@ server <- function(input, output, session) {
 
 
   # Bar clicked (server) --------------------------------------------
-  observeEvent(input$bar_clicked, {
-    airport <- input$bar_clicked
+  observeEvent(input$top_airports_selected, {
+    airport <- input$top_airports_selected
     month <- input$month
     tab_title <- paste(
       input$airline, "-", airport,
