@@ -10,7 +10,6 @@ library(ggplot2)
 library(ggiraph)
 
 library(DT)
-library(r2d3)
 
 library(nycflights13)
 
@@ -72,7 +71,7 @@ ui <- dashboardPage(
         fluidRow(
           column(
             width = 6,
-            d3Output("group_totals")
+            girafeOutput("group_totals")
           ),
           column(
             width = 6,
@@ -155,30 +154,69 @@ server <- function(input, output, session) {
   })
 
   # Montly/daily trend (server) -------------------------------------
-  output$group_totals <- renderD3({
-    grouped <- ifelse(input$month != 99, expr(day), expr(month))
-
-    res <- base_flights() %>%
-      group_by(!!grouped) %>%
-      tally() %>%
-      collect() %>%
-      mutate(
-        y = n,
-        x = !!grouped
-      ) %>%
-      select(x, y)
-
-    if (input$month == 99) {
-      res <- res %>%
-        inner_join(
-          tibble(x = 1:12, label = substr(month.name, 1, 3)),
-          by = "x"
+  output$group_totals <- renderGirafe({
+    if(input$month == 99) {
+      tbl_month <- tibble(
+        month = 1:12, 
+        label = substr(month.name, 1, 3)
+      )
+      
+      tbl_months <- base_flights() %>%  
+        count(month) %>% 
+        inner_join(tbl_month, by = "month") %>% 
+        mutate(n_label = prettyNum(n, big.mark = ","))
+      
+      gg_months <- tbl_months %>% 
+        ggplot(aes(as.factor(month), n, label = n_label, data_id = month)) +
+        geom_col_interactive(fill = "#009E73", alpha = 0.7) +
+        geom_text_interactive(vjust = -0.5) +
+        scale_x_discrete(labels = substr(month.name, 1, 3)) +
+        theme_minimal() +
+        theme(
+          axis.text.y = element_blank(),
+          axis.text.x = element_text(hjust = 0, size = 10),
+          axis.title = element_blank(),
+          plot.subtitle = element_text(hjust = 1, vjust = 5, size = 8)
+        ) +
+        labs(
+          title = "Total Flights",
+          subtitle = "Click on column for more details"
         )
+      
+      girafe(
+        ggobj = gg_months, 
+        options = list(opts_selection(type = "single", only_shiny = FALSE))
+      )
     } else {
-      res <- res %>%
-        mutate(label = x)
+      tbl_days <- base_flights() %>%  
+        count(day) %>% 
+        mutate(n_label = prettyNum(n, big.mark = ",")) %>% 
+        ungroup()
+      
+      gg_days <- tbl_days %>% 
+        ggplot(aes(day, n, label = n_label, data_id = day)) +
+        geom_path(alpha = 0.5) +
+        geom_point_interactive(color = "#009E73", alpha = 0.7, size = 5) +
+        geom_text_interactive(vjust = -1, size = 2.5) +
+        theme_minimal() +
+        theme(
+          axis.text.y = element_blank(),
+          axis.text.x = element_text(hjust = 0, size = 8),
+          axis.title = element_blank(),
+          plot.subtitle = element_text(hjust = 1, vjust = 5, size = 8)
+        ) +
+        scale_x_continuous(breaks = 1:31) +
+        labs(
+          title = "Total Flights",
+          subtitle = "Click on dot for more details"
+        )
+      
+      girafe(
+        ggobj = gg_days, 
+        options = list(opts_selection(type = "single", only_shiny = FALSE))
+      )
     }
-    r2d3(res, "col_plot.js")
+    
   })
 
   # Top airports (server) -------------------------------------------
@@ -194,12 +232,11 @@ server <- function(input, output, session) {
       mutate(
         dest_name = str_sub(dest_name, 1, 30),
         n_label = prettyNum(n, big.mark = ",")
-        #n_label = paste0(round(n / 1000), "K")
       ) 
     
     gg_airports <- tbl_airports %>%  
       ggplot(aes(x = dest_name, y = n, data_id = dest, label = n_label)) +
-      geom_col_interactive(fill = "#0072B2") +
+      geom_col_interactive(fill = "#0072B2", alpha = 0.7) +
       geom_text_interactive(hjust = 1.1, color = "#ffffff") +
       coord_flip() +
       theme_minimal() +
@@ -241,11 +278,11 @@ server <- function(input, output, session) {
   }
 
   # Month/Day column click (server) ---------------------------------
-  observeEvent(input$column_clicked != "", {
+  observeEvent(input$group_totals_selected != "", {
     if (input$month == "99") {
-      updateSelectInput(session, "month", selected = input$column_clicked)
+      updateSelectInput(session, "month", selected = input$group_totals_selected)
     } else {
-      day <- input$column_clicked
+      day <- input$group_totals_selected
       month <- input$month
       tab_title <- paste(
         input$airline, "-", month.name[as.integer(month)], "-", day
