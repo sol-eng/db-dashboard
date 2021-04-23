@@ -13,6 +13,8 @@ library(DT)
 
 library(nycflights13)
 
+update_geom_defaults("text", list(family = "Source Sans Pro"))
+
 # Use purrr's split() and map() function to create the list
 # needed to display the name of the airline but pass its
 # Carrier code as the value
@@ -169,10 +171,11 @@ server <- function(input, output, session) {
       gg_months <- tbl_months %>% 
         ggplot(aes(as.factor(month), n, label = n_label, data_id = month)) +
         geom_col_interactive(fill = "#009E73", alpha = 0.7) +
-        geom_text_interactive(vjust = -0.5) +
+        geom_text(vjust = -0.5) +
         scale_x_discrete(labels = substr(month.name, 1, 3)) +
         theme_minimal() +
         theme(
+          text = element_text(family = "Source Sans Pro"),
           axis.text.y = element_blank(),
           axis.text.x = element_text(hjust = 0, size = 10),
           axis.title = element_blank(),
@@ -188,26 +191,33 @@ server <- function(input, output, session) {
         options = list(opts_selection(type = "single", only_shiny = FALSE))
       )
     } else {
+      month_name <- month.name[as.integer(input$month)]
+      
       tbl_days <- base_flights() %>%  
         count(day) %>% 
         mutate(n_label = prettyNum(n, big.mark = ",")) %>% 
         ungroup()
       
+      max_count <- max(tbl_days$n)
+      
       gg_days <- tbl_days %>% 
         ggplot(aes(day, n, label = n_label, data_id = day)) +
         geom_path(alpha = 0.5) +
         geom_point_interactive(color = "#009E73", alpha = 0.7, size = 5) +
-        geom_text_interactive(vjust = -1, size = 2.5) +
+        geom_text(vjust = -1, size = 2.5) +
+        ylim(0, max_count) +
         theme_minimal() +
         theme(
+          text = element_text(family = "Source Sans Pro"),
           axis.text.y = element_blank(),
           axis.text.x = element_text(hjust = 0, size = 8),
           axis.title = element_blank(),
+          panel.grid = element_blank(), 
           plot.subtitle = element_text(hjust = 1, vjust = 5, size = 8)
         ) +
         scale_x_continuous(breaks = 1:31) +
         labs(
-          title = "Total Flights",
+          title = paste0("Total Flights - ", month_name),
           subtitle = "Click on dot for more details"
         )
       
@@ -237,14 +247,15 @@ server <- function(input, output, session) {
     gg_airports <- tbl_airports %>%  
       ggplot(aes(x = dest_name, y = n, data_id = dest, label = n_label)) +
       geom_col_interactive(fill = "#0072B2", alpha = 0.7) +
-      geom_text_interactive(hjust = 1.1, color = "#ffffff") +
+      geom_text_interactive(hjust = 1.1, color = "#ffffff", family = "Source Sans Pro") +
       coord_flip() +
       theme_minimal() +
       theme(
+        text = element_text(family = "Source Sans Pro"),
         axis.text.x = element_blank(),
         axis.text.y = element_text(hjust = 0, size = 10),
         axis.title = element_blank(),
-        plot.title = element_text(hjust = -1),
+        plot.title = element_text(hjust = -2),
         plot.subtitle = element_text(hjust = 1, vjust = 5, size = 8)
       ) +
       labs(
